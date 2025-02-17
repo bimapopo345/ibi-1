@@ -2,22 +2,38 @@
 session_start();
 include '../includes/db.php';
 
+// Jika sudah login, redirect ke dashboard
+if (isset($_SESSION['admin_id'])) {
+    header('Location: dashboard.php');
+    exit();
+}
+
+// Handle login form submission
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $username = $_POST['username'];
     $password = $_POST['password'];
 
-    $query = "SELECT * FROM users WHERE username = '$username' AND role = 'admin'";
-    $result = mysqli_query($conn, $query);
-    $user = mysqli_fetch_assoc($result);
+    $query = "SELECT * FROM users WHERE username = ? AND role = 'admin'";
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param("s", $username);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $user = $result->fetch_assoc();
 
     if ($user && $password === $user['password']) {
         $_SESSION['admin_id'] = $user['id'];
-        header('Location: dashboard.php'); // Arahkan ke dashboard.php
+        $_SESSION['admin_name'] = $user['nama_lengkap'];
+        header('Location: dashboard.php');
         exit();
     } else {
         $error_message = "Username atau password salah!";
     }
 }
+
+// Cek pesan logout
+$success_message = isset($_GET['logout']) && $_GET['logout'] == 'success' 
+    ? "Anda berhasil logout" 
+    : null;
 ?>
 
 <!DOCTYPE html>
@@ -43,6 +59,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         <!-- Form Login -->
         <div class="bg-white py-8 px-6 shadow rounded-lg">
             <form method="POST" action="index.php">
+                <?php if (isset($success_message)): ?>
+                    <div class="mb-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative" role="alert">
+                        <span class="block sm:inline"><?php echo $success_message; ?></span>
+                    </div>
+                <?php endif; ?>
+
                 <?php if (isset($error_message)): ?>
                     <div class="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
                         <span class="block sm:inline"><?php echo $error_message; ?></span>

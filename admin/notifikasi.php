@@ -61,12 +61,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     <button id="mobile-menu-button" class="text-gray-500 hover:text-orange-600">
                         <i class="fas fa-bars text-2xl"></i>
                     </button>
-                </div>
             </div>
         </div>
-    </nav>
+    </div>
 
-    <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+    <?php include 'mobile_menu.php'; ?>
+</nav>
+
+<div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
         <!-- Header -->
         <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
             <div class="flex items-center">
