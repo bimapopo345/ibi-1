@@ -16,111 +16,61 @@ if (!$row) {
 }
 ?>
 
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo htmlspecialchars($row['nama_produk']); ?></title>
-    <link rel="stylesheet" type="text/css" href="style.css">
-</head>
-<style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+<?php include '../includes/header.php'; ?>
 
-        header {
-            background-color: #35424a;
-            color: white;
-            padding: 10px 20px;
-            text-align: center;
-        }
-        header h1 {
-            color: white;
-            text-align: center;
-        }
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-4xl mx-auto bg-white rounded-lg shadow-lg overflow-hidden">
+        <div class="md:flex">
+            <!-- Product Image -->
+            <div class="md:w-1/2">
+                <img src="../images/<?php echo htmlspecialchars($row['gambar']); ?>" 
+                     alt="<?php echo htmlspecialchars($row['nama_produk']); ?>"
+                     class="w-full h-96 object-cover">
+            </div>
+            
+            <!-- Product Details -->
+            <div class="md:w-1/2 p-6">
+                <h1 class="text-3xl font-bold mb-4"><?php echo htmlspecialchars($row['nama_produk']); ?></h1>
+                
+                <div class="text-2xl font-bold text-orange-600 mb-4">
+                    Rp <?php echo number_format($row['harga'], 0, ',', '.'); ?>
+                </div>
+                
+                <div class="mb-6">
+                    <h3 class="text-gray-700 text-lg font-semibold mb-2">Deskripsi:</h3>
+                    <p class="text-gray-600"><?php echo htmlspecialchars($row['deskripsi']); ?></p>
+                </div>
+                
+                <form method="POST" action="keranjang.php" class="space-y-4">
+                    <input type="hidden" name="produk_id" value="<?php echo $row['id']; ?>">
+                    
+                    <div class="flex items-center space-x-4">
+                        <label for="jumlah" class="text-gray-700">Jumlah:</label>
+                        <input type="number" 
+                               name="jumlah" 
+                               id="jumlah" 
+                               min="1" 
+                               value="1" 
+                               required 
+                               class="w-20 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500">
+                    </div>
+                    
+                    <div class="flex space-x-4">
+                        <button type="submit" 
+                                class="flex-1 bg-orange-600 hover:bg-orange-700 text-white font-bold py-3 px-6 rounded-lg transition-colors">
+                            <i class="fas fa-shopping-cart mr-2"></i>
+                            Masukkan ke Keranjang
+                        </button>
+                        
+                        <a href="index.php" 
+                           class="inline-block bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-3 px-6 rounded-lg transition-colors">
+                            Kembali
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 
-        nav {
-            background-color: #333;
-        }
-
-        nav ul {
-            list-style-type: none;
-            padding: 0;
-        }
-
-        nav ul li {
-            display: inline;
-            margin-right: 20px;
-        }
-
-        nav ul li a {
-            color: white;
-            text-decoration: none;
-        }
-
-        main {
-            padding: 20px;
-            max-width: 800px;
-            margin: auto;
-        }
-
-        img {
-            max-width: 100%;
-            height: auto;
-        }
-
-        .cta-button {
-            display: inline-block;
-            margin-top: 20px;
-            padding: 10px 20px;
-            background-color: #35424a;
-            color: white;
-            text-decoration: none;
-            border-radius: 5px;
-        }
-
-        @media (max-width: 600px) {
-            nav ul li {
-                display: block;
-                margin: 10px 0;
-            }
-
-            main {
-                padding: 10px;
-            }
-        }
-    </style>
-<body>
-
-<header>
-    <h1>Detail Produk</h1>
-</header>
-
-<nav>
-    <ul>
-        <li><a href="index.php">Beranda</a></li>
-        <li><a href="keranjang.php">Keranjang</a></li>
-    </ul>
-</nav>
-
-<main>
-    <h2><?php echo htmlspecialchars($row['nama_produk']); ?></h2>
-    <img src="../images/<?php echo htmlspecialchars($row['gambar']); ?>" alt="<?php echo htmlspecialchars($row['nama_produk']); ?>">
-    <p>Harga: Rp <?php echo htmlspecialchars($row['harga']); ?></p>
-    <p><?php echo htmlspecialchars($row['deskripsi']); ?></p>
-
-    <form method="POST" action="keranjang.php">
-        <input type="hidden" name="produk_id" value="<?php echo $row['id']; ?>">
-        <input type="number" name="jumlah" min="1" value="1" required>
-        <input type="submit" value="Masukkan ke Keranjang">
-    </form>
-
-    <a href="index.php" class="cta-button">Kembali ke Beranda</a>
-</main>
-
-</body>
-</html>
+<?php include '../includes/footer.php'; ?>
