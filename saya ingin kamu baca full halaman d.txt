@@ -1,0 +1,69 @@
+saya ingin kamu baca full halaman dan folder yang ada!!!!
+
+
+gimana cara saya bisa pake kodingannya kan harusbuat db dulu
+
+
+---=-=
+
+buatkan awal dibuka itu langsung ke index.php !!!
+
+
+saya tidak mau kamu ngubah yang lain lain!! cukup yang saya instruksuikan dibawah!! jangan nambah aneh aneh
+
+pakein design tailwindcss CDN
+
+NOTE: perbahtikan chunk api!!!! cut smaller karena api ga bisa responses to long
+
+<< saya ingin kamu baca dulu semua kodingan yg ada di semua folder dan filee!!! biar tau cara kerja codingannya
+
+
+saya ingin pas di index.php buatkan kaya homerpage web elengkap mungkin sebagus mungkin dan responsive sesuai konsep Makanan
+
+dan buatkan di homepage ada naavbar button keranjang, produk, dan pesanan
+
+Perbaiki header semua, halaman dan footernya, jangan lupa di keranjang ada fitur detail dan search di product
+
+dan di index.php kasihkan homepage awal 
+
+intinya semua halaman ubahkan desainnya yg bener
+
+
+jadi semisal sudah berhasil pemesanan munculin juga dong history udah mesan apa aja, jangan diadmin aja 
+
+dan desain semua web bagusin dong
+
+>> tambahin icon keranjang dong, yg header dulu tolong kamu ubah, ada di foder includes ada  footer.php dan header.php
+
+perhatikan folder includes, images, customer, dan css  , admin 
+
+
+NOTE: perbahtikan chunk api!!!! cut smaller karena api ga bisa responses to long
+
+
+-==-=
+
+semisal nih saya dari index.php ke navbar mana pun bisa, nah semisal saya di menu/keranjang/pesanan, nah kan mereka navbar sendiri pas dimereka mau ke nvabar manapun ga bisa, karena terdoucle gitu linknya, sednakgan dari idnex.php kemanapun bisa
+
+contoh semisal dari menu, mau ke keranjang > http://localhost/aplikasi_pemesanan/customer/customer/keranjang.php
+
+-=-=
+
+nah sekarang tanpa menggangu fitur admin, saya ingin desainkan sebagus mungkin konsep makanan + pake tailwind cdn
+
+http://localhost/aplikasi_pemesanan/admin/
+
+http://localhost/aplikasi_pemesanan/admin/dashboard.php
+
+http://localhost/aplikasi_pemesanan/admin/manage_produk.php
+
+http://localhost/aplikasi_pemesanan/admin/notifikasi.php
+
+http://localhost/aplikasi_pemesanan/admin/konfirmasi_pembayaran.php
+
+
+-=-=
+
+https://9db8-180-251-180-210.ngrok-free.app
+
+malah jadi kaya gitu, pas dibuka malah ke xampp, kan folder saya beda gitu aplikasi_pemesanan di htdocs nya
