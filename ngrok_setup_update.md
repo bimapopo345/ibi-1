@@ -12,6 +12,11 @@
    ```
    https://xxxx-xxx-xxx-xxx.ngrok-free.app/aplikasi_pemesanan
    ```
+   Pastikan:
+
+Ada tanda / di akhir URL
+Apache XAMPP running
+Aplikasi bisa diakses di localhost/aplikasi_pemesanan
 
 ## Penjelasan Konfigurasi:
 
