@@ -25,77 +25,96 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Form Login</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f0f0f0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-        }
-        .login-container {
-            background-color: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-            width: 300px;
-            text-align: center;
-        }
-        h2 {
-            margin-bottom: 20px;
-        }
-        .input-group {
-            margin-bottom: 15px;
-        }
-        input {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            transition: border-color 0.3s, box-shadow 0.3s;
-        }
-        input:focus {
-            border-color: #007bff;
-            box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
-            outline: none;
-        }
-        button {
-            width: 100%;
-            padding: 10px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-        button:hover {
-            background-color: #0056b3;
-        }
-        .error-message {
-            color: red;
-            margin-bottom: 15px;
-        }
-    </style>
+    <title>Login Admin - Warung Makan</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
-<body>
-    <div class="login-container">
-        <form method="POST" action="index.php">
-            <h2>Login</h2>
-            <?php if (isset($error_message)): ?>
-                <p class="error-message"><?php echo $error_message; ?></p>
-            <?php endif; ?>
-            <div class="input-group">
-                <input type="text" name="username" placeholder="Username" required>
-            </div>
-            <div class="input-group">
-                <input type="password" name="password" placeholder="Password" required>
-            </div>
-            <button type="submit">Masuk</button>
-        </form>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+    <div class="max-w-md w-full mx-4">
+        <!-- Logo dan Judul -->
+        <div class="text-center mb-8">
+            <h2 class="text-3xl font-bold text-gray-900">
+                <i class="fas fa-utensils text-orange-600 mr-2"></i>
+                Warung Makan
+            </h2>
+            <p class="mt-2 text-sm text-gray-600">Panel Admin</p>
+        </div>
+
+        <!-- Form Login -->
+        <div class="bg-white py-8 px-6 shadow rounded-lg">
+            <form method="POST" action="index.php">
+                <?php if (isset($error_message)): ?>
+                    <div class="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+                        <span class="block sm:inline"><?php echo $error_message; ?></span>
+                    </div>
+                <?php endif; ?>
+
+                <div class="space-y-6">
+                    <div>
+                        <label for="username" class="block text-sm font-medium text-gray-700">
+                            Username
+                        </label>
+                        <div class="mt-1">
+                            <input id="username" 
+                                   name="username" 
+                                   type="text" 
+                                   required 
+                                   class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-orange-500 focus:border-orange-500">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="password" class="block text-sm font-medium text-gray-700">
+                            Password
+                        </label>
+                        <div class="mt-1 relative">
+                            <input id="password" 
+                                   name="password" 
+                                   type="password" 
+                                   required 
+                                   class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-orange-500 focus:border-orange-500">
+                            <button type="button" 
+                                    onclick="togglePassword()"
+                                    class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600">
+                                <i class="fas fa-eye" id="toggleIcon"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div>
+                        <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500">
+                            <i class="fas fa-sign-in-alt mr-2"></i>
+                            Masuk ke Dashboard
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Link Kembali -->
+        <div class="text-center mt-4">
+            <a href="../index.php" class="text-sm text-gray-600 hover:text-orange-600">
+                <i class="fas fa-arrow-left mr-1"></i>
+                Kembali ke Beranda
+            </a>
+        </div>
     </div>
+
+    <script>
+        function togglePassword() {
+            const password = document.getElementById('password');
+            const toggleIcon = document.getElementById('toggleIcon');
+            
+            if (password.type === 'password') {
+                password.type = 'text';
+                toggleIcon.classList.remove('fa-eye');
+                toggleIcon.classList.add('fa-eye-slash');
+            } else {
+                password.type = 'password';
+                toggleIcon.classList.remove('fa-eye-slash');
+                toggleIcon.classList.add('fa-eye');
+            }
+        }
+    </script>
 </body>
 </html>

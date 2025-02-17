@@ -6,10 +6,10 @@ if (!isset($_SESSION['admin_id'])) {
     header('Location: index.php');
 }
 
-$pemesanan = mysqli_query($conn, "SELECT p.*, u.nama_lengkap, u.no_telp 
-                                 FROM pesanan p 
-                                 JOIN users u ON p.user_id = u.id 
-                                 WHERE p.status = 'pending'");
+$pesanan = mysqli_query($conn, "SELECT p.*, u.nama_lengkap, u.no_telp 
+                               FROM pesanan p 
+                               JOIN users u ON p.user_id = u.id 
+                               WHERE p.status = 'pending'");
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $id = $_POST['id'];
@@ -24,58 +24,152 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Konfirmasi Pembayaran</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <style>
-        body {
-            padding: 20px;
-        }
-        table {
-            width: 100%;
-        }
-        th, td {
-            text-align: center;
-        }
-    </style>
+    <title>Konfirmasi Pembayaran - Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
-<body>
+<body class="bg-gray-100">
+    <!-- Navbar -->
+    <nav class="bg-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex justify-between h-16">
+                <div class="flex">
+                    <div class="flex-shrink-0 flex items-center">
+                        <i class="fas fa-utensils text-2xl text-orange-600"></i>
+                        <span class="ml-2 text-xl font-bold">Admin Panel</span>
+                    </div>
+                </div>
+                
+                <!-- Desktop Menu -->
+                <div class="hidden md:flex items-center">
+                    <a href="manage_produk.php" class="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-orange-600">
+                        <i class="fas fa-box-open mr-1"></i> Produk
+                    </a>
+                    <a href="notifikasi.php" class="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-orange-600">
+                        <i class="fas fa-bell mr-1"></i> Notifikasi
+                    </a>
+                    <a href="konfirmasi_pembayaran.php" class="px-3 py-2 rounded-md text-sm font-medium text-orange-600">
+                        <i class="fas fa-credit-card mr-1"></i> Pembayaran
+                    </a>
+                    <a href="logout.php" class="ml-4 px-4 py-2 rounded-md text-sm font-medium text-white bg-orange-600 hover:bg-orange-700">
+                        <i class="fas fa-sign-out-alt mr-1"></i> Logout
+                    </a>
+                </div>
 
-<h1 class="text-center">Konfirmasi Pembayaran</h1>
-<div class="table-responsive">
-    <table class="table table-bordered">
-        <thead class="thead-light">
-            <tr>
-                <th>Nama Pemesan</th>
-                <th>Nomor WhatsApp</th>
-                <th>Total Harga</th>
-                <th>Aksi</th>
-            </tr>
-        </thead>
-        <tbody>
-            <?php while ($row = mysqli_fetch_assoc($pemesanan)) { ?>
-            <tr>
-                <td><?php echo htmlspecialchars($row['nama_lengkap']); ?></td>
-                <td><?php echo htmlspecialchars($row['no_telp']); ?></td>
-                <td><?php echo htmlspecialchars($row['total_harga']); ?></td>
-                <td>
-                    <form method="POST">
-                        <input type="hidden" name="id" value="<?php echo $row['id']; ?>">
-                        <button type="submit" class="btn btn-success">Konfirmasi</button>
-                    </form>
-                </td>
-            </tr>
-            <?php } ?>
-        </tbody>
-    </table>
-</div>
+                <!-- Mobile menu button -->
+                <div class="md:hidden flex items-center">
+                    <button id="mobile-menu-button" class="text-gray-500 hover:text-orange-600">
+                        <i class="fas fa-bars text-2xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
 
-<!-- Tambahkan ini di bawah tabel -->
-<div class="text-center">
-    <a href="dashboard.php" class="btn btn-primary">Kembali ke Dashboard</a>
-</div>
+    <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+            <div class="flex items-center">
+                <div class="flex-shrink-0 bg-orange-100 rounded-md p-3">
+                    <i class="fas fa-credit-card text-orange-600 text-xl"></i>
+                </div>
+                <div class="ml-4">
+                    <h2 class="text-2xl font-bold text-gray-900">Konfirmasi Pembayaran</h2>
+                    <p class="text-gray-600">Verifikasi pembayaran pesanan customer</p>
+                </div>
+            </div>
+        </div>
 
-<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+        <!-- Table -->
+        <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+            <div class="p-6">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    ID Pesanan
+                                </th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Pemesan
+                                </th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Total
+                                </th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Status
+                                </th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Aksi
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            <?php while ($row = mysqli_fetch_assoc($pesanan)) { ?>
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="text-sm text-gray-900">#<?php echo str_pad($row['id'], 5, '0', STR_PAD_LEFT); ?></span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm font-medium text-gray-900">
+                                        <?php echo htmlspecialchars($row['nama_lengkap']); ?>
+                                    </div>
+                                    <div class="text-sm text-gray-500">
+                                        <?php echo htmlspecialchars($row['no_telp']); ?>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm font-medium text-orange-600">
+                                        Rp <?php echo number_format($row['total_harga'], 0, ',', '.'); ?>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                                        Menunggu Konfirmasi
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                    <form method="POST" class="inline">
+                                        <input type="hidden" name="id" value="<?php echo $row['id']; ?>">
+                                        <button type="submit" 
+                                                class="text-white bg-orange-600 hover:bg-orange-700 px-4 py-2 rounded-md transition-colors"
+                                                onclick="return confirm('Konfirmasi pembayaran ini?')">
+                                            <i class="fas fa-check mr-1"></i>
+                                            Konfirmasi
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            <?php } ?>
+
+                            <?php if (mysqli_num_rows($pesanan) == 0) { ?>
+                            <tr>
+                                <td colspan="5" class="px-6 py-4 text-center text-gray-500">
+                                    <i class="fas fa-inbox text-4xl mb-2"></i>
+                                    <p>Tidak ada pembayaran yang perlu dikonfirmasi</p>
+                                </td>
+                            </tr>
+                            <?php } ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Link Kembali -->
+        <div class="mt-6 text-center">
+            <a href="dashboard.php" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-gray-700 bg-gray-100 hover:bg-gray-200">
+                <i class="fas fa-arrow-left mr-2"></i>
+                Kembali ke Dashboard
+            </a>
+        </div>
+    </div>
+
+    <script>
+        // Mobile menu toggle
+        document.getElementById('mobile-menu-button').addEventListener('click', function() {
+            document.getElementById('mobile-menu').classList.toggle('hidden');
+        });
+    </script>
 </body>
 </html>
