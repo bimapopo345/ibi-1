@@ -6,8 +6,8 @@
     <title>Warung Makan</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="css/style.css">
-    <script src="js/script.js" defer></script>
+    <link rel="stylesheet" href="<?php echo $base_path; ?>css/style.css">
+    <script src="<?php echo $base_path; ?>js/script.js" defer></script>
 </head>
 <body class="min-h-screen bg-gray-50">
     <header class="bg-white shadow-md">
@@ -15,20 +15,25 @@
             <div class="flex justify-between items-center">
                 <!-- Logo -->
                 <div class="flex items-center">
-                    <a href="index.php" class="text-2xl font-bold text-orange-600">
+                    <a href="<?php echo $base_path; ?>index.php" class="text-2xl font-bold text-orange-600">
                         Warung Makan
                     </a>
                 </div>
                 
+                <?php
+                // Determine if we're in a subdirectory
+                $is_customer = strpos($_SERVER['PHP_SELF'], '/customer/') !== false;
+                $base_path = $is_customer ? '../' : '';
+                ?>
                 <!-- Desktop Menu -->
                 <div class="hidden md:flex items-center space-x-8">
-                    <a href="index.php" class="text-gray-700 hover:text-orange-600 transition-colors">Beranda</a>
-                    <a href="customer/index.php" class="text-gray-700 hover:text-orange-600 transition-colors">Menu</a>
-                    <a href="customer/keranjang.php" class="flex items-center text-gray-700 hover:text-orange-600 transition-colors">
-                        <img src="images/cart_icon.png" alt="Keranjang" class="w-6 h-6 mr-1">
+                    <a href="<?php echo $base_path; ?>index.php" class="text-gray-700 hover:text-orange-600 transition-colors">Beranda</a>
+                    <a href="<?php echo $base_path; ?>customer/index.php" class="text-gray-700 hover:text-orange-600 transition-colors">Menu</a>
+                    <a href="<?php echo $base_path; ?>customer/keranjang.php" class="flex items-center text-gray-700 hover:text-orange-600 transition-colors">
+                        <img src="<?php echo $base_path; ?>images/cart_icon.png" alt="Keranjang" class="w-6 h-6 mr-1">
                         Keranjang
                     </a>
-                    <a href="customer/pesanan.php" class="text-gray-700 hover:text-orange-600 transition-colors">Pesanan Saya</a>
+                    <a href="<?php echo $base_path; ?>customer/pesanan.php" class="text-gray-700 hover:text-orange-600 transition-colors">Pesanan Saya</a>
                 </div>
 
                 <!-- Mobile menu button -->
@@ -41,10 +46,10 @@
 
             <!-- Mobile Menu -->
             <div id="mobile-menu" class="hidden md:hidden mt-2">
-                <a href="index.php" class="block py-2 text-gray-700 hover:text-orange-600">Beranda</a>
-                <a href="customer/index.php" class="block py-2 text-gray-700 hover:text-orange-600">Menu</a>
-                <a href="customer/keranjang.php" class="block py-2 text-gray-700 hover:text-orange-600">Keranjang</a>
-                <a href="customer/pesanan.php" class="block py-2 text-gray-700 hover:text-orange-600">Pesanan Saya</a>
+                <a href="<?php echo $base_path; ?>index.php" class="block py-2 text-gray-700 hover:text-orange-600">Beranda</a>
+                <a href="<?php echo $base_path; ?>customer/index.php" class="block py-2 text-gray-700 hover:text-orange-600">Menu</a>
+                <a href="<?php echo $base_path; ?>customer/keranjang.php" class="block py-2 text-gray-700 hover:text-orange-600">Keranjang</a>
+                <a href="<?php echo $base_path; ?>customer/pesanan.php" class="block py-2 text-gray-700 hover:text-orange-600">Pesanan Saya</a>
             </div>
         </nav>
     </header>
