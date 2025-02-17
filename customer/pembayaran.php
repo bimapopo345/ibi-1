@@ -19,71 +19,116 @@ if (isset($_SESSION['keranjang'])) {
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $nama = $_POST['nama'];
-    $nomor_whatsapp = $_POST['nomor_whatsapp'];
+    $no_telp = $_POST['no_telp'];
 
-    // Simpan pemesanan ke database
-    $query = "INSERT INTO pemesanan (nama_pemesan, nomor_whatsapp, total_harga) VALUES ('$nama', '$nomor_whatsapp', '$total_harga')";
-    mysqli_query($conn, $query);
-    $pemesanan_id = mysqli_insert_id($conn);
+    // Buat user baru untuk pesanan ini
+    $query = "INSERT INTO users (username, password, nama_lengkap, no_telp, role) 
+              VALUES ('guest_" . time() . "', 'guest', ?, ?, 'customer')";
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param("ss", $nama, $no_telp);
+    $stmt->execute();
+    $user_id = $conn->insert_id;
 
-    // Simpan detail pemesanan
+    // Simpan pesanan
+    $query = "INSERT INTO pesanan (user_id, total_harga, status) VALUES (?, ?, 'pending')";
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param("id", $user_id, $total_harga);
+    $stmt->execute();
+    $pesanan_id = $conn->insert_id;
+
+    // Simpan detail pesanan
     foreach ($_SESSION['keranjang'] as $produk_id => $jumlah) {
-        $query = "INSERT INTO detail_pemesanan (pemesanan_id, produk_id, jumlah) VALUES ('$pemesanan_id', '$produk_id', '$jumlah')";
-        mysqli_query($conn, $query);
+        $stmt = $conn->prepare("SELECT harga FROM produk WHERE id = ?");
+        $stmt->bind_param("i", $produk_id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $row = $result->fetch_assoc();
+        $harga_satuan = $row['harga'];
+        $subtotal = $harga_satuan * $jumlah;
+
+        $query = "INSERT INTO detail_pesanan (pesanan_id, produk_id, jumlah, harga_satuan, subtotal) 
+                 VALUES (?, ?, ?, ?, ?)";
+        $stmt = $conn->prepare($query);
+        $stmt->bind_param("iiiii", $pesanan_id, $produk_id, $jumlah, $harga_satuan, $subtotal);
+        $stmt->execute();
     }
 
     // Hapus keranjang setelah pemesanan
     unset($_SESSION['keranjang']);
     header('Location: konfirmasi.php');
+    exit();
 }
+
+include '../includes/header.php';
 ?>
 
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <title>Pembayaran</title>
-</head>
-<body>
-<div class="container mt-5">
-    <h1 class="text-center">Pembayaran</h1>
-    <form method="POST" class="mt-4">
-        <div class="form-group">
-            <label for="nama">Nama Pemesan</label>
-            <input type="text" class="form-control" name="nama" placeholder="Nama Pemesan" required>
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-2xl mx-auto">
+        <h1 class="text-3xl font-bold mb-8">Pembayaran</h1>
+        
+        <div class="bg-white rounded-lg shadow-lg overflow-hidden mb-8">
+            <div class="p-6">
+                <h2 class="text-xl font-semibold mb-4">Detail Pesanan</h2>
+                <div class="space-y-4">
+                    <?php
+                    if (isset($_SESSION['keranjang'])) {
+                        foreach ($_SESSION['keranjang'] as $id => $jumlah) {
+                            $stmt = $conn->prepare("SELECT nama_produk, harga FROM produk WHERE id = ?");
+                            $stmt->bind_param("i", $id);
+                            $stmt->execute();
+                            $result = $stmt->get_result();
+                            $row = $result->fetch_assoc();
+                            ?>
+                            <div class="flex justify-between items-center border-b pb-4">
+                                <div>
+                                    <h3 class="font-medium"><?php echo htmlspecialchars($row['nama_produk']); ?></h3>
+                                    <p class="text-gray-600"><?php echo $jumlah; ?> x Rp <?php echo number_format($row['harga'], 0, ',', '.'); ?></p>
+                                </div>
+                                <span class="font-semibold">Rp <?php echo number_format($row['harga'] * $jumlah, 0, ',', '.'); ?></span>
+                            </div>
+                            <?php
+                        }
+                    }
+                    ?>
+                    <div class="flex justify-between items-center pt-4">
+                        <span class="text-lg font-semibold">Total:</span>
+                        <span class="text-2xl font-bold text-orange-600">Rp <?php echo number_format($total_harga, 0, ',', '.'); ?></span>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="form-group">
-            <label for="nomor_whatsapp">Nomor WhatsApp</label>
-            <input type="text" class="form-control" name="nomor_whatsapp" placeholder="Nomor WhatsApp" required>
-        </div>
-        <input type="hidden" name="total_harga" value="<?php echo htmlspecialchars($total_harga); ?>">
-        
-        <h2>Total Harga: <?php echo htmlspecialchars($total_harga); ?></h2>
-        
-        <h3>Detail Produk:</h3>
-        <ul class="list-group mb-4">
-            <?php
-            if (isset($_SESSION['keranjang'])) {
-                foreach ($_SESSION['keranjang'] as $id => $jumlah) {
-                    $stmt = $conn->prepare("SELECT nama, harga FROM produk WHERE id = ?");
-                    $stmt->bind_param("i", $id);
-                    $stmt->execute();
-                    $result = $stmt->get_result();
-                    $row = $result->fetch_assoc();
-                    echo "<li class='list-group-item'>" . htmlspecialchars($row['nama']) . " - Jumlah: " . htmlspecialchars($jumlah) . " - Harga: " . htmlspecialchars($row['harga']) . "</li>";
-                }
-            }
-            ?>
-        </ul>
-        
-        <button type="submit" class="btn btn-primary btn-block">Konfirmasi Pembayaran</button>
-    </form>
+
+        <form method="POST" class="bg-white rounded-lg shadow-lg overflow-hidden">
+            <div class="p-6 space-y-6">
+                <div>
+                    <label for="nama" class="block text-sm font-medium text-gray-700">Nama Pemesan</label>
+                    <input type="text" 
+                           id="nama" 
+                           name="nama" 
+                           required 
+                           class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500">
+                </div>
+                <div>
+                    <label for="no_telp" class="block text-sm font-medium text-gray-700">Nomor Telepon</label>
+                    <input type="tel" 
+                           id="no_telp" 
+                           name="no_telp" 
+                           required 
+                           class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500">
+                </div>
+                <div class="flex space-x-4">
+                    <button type="submit" 
+                            class="flex-1 bg-orange-600 hover:bg-orange-700 text-white font-bold py-3 px-6 rounded-lg transition-colors">
+                        Konfirmasi Pembayaran
+                    </button>
+                    <a href="keranjang.php" 
+                       class="inline-block bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-3 px-6 rounded-lg transition-colors">
+                        Kembali
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
 </div>
 
-<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-</body>
-</html>
+<?php include '../includes/footer.php'; ?>

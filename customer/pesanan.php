@@ -3,19 +3,12 @@ session_start();
 include '../includes/db.php';
 include '../includes/header.php';
 
-// Jika belum login, redirect ke halaman login
-if (!isset($_SESSION['user_id'])) {
-    header('Location: login.php');
-    exit();
-}
-
-// Ambil riwayat pesanan user
-$user_id = $_SESSION['user_id'];
-$query = "SELECT p.*, dp.*, pr.nama_produk, pr.gambar 
+// Ambil semua riwayat pesanan
+$query = "SELECT p.*, dp.*, pr.nama_produk, pr.gambar, u.nama_lengkap, u.no_telp 
           FROM pesanan p 
           JOIN detail_pesanan dp ON p.id = dp.pesanan_id 
           JOIN produk pr ON dp.produk_id = pr.id 
-          WHERE p.user_id = $user_id 
+          JOIN users u ON p.user_id = u.id
           ORDER BY p.created_at DESC";
 $result = mysqli_query($conn, $query);
 ?>
@@ -37,7 +30,14 @@ $result = mysqli_query($conn, $query);
                 <div class="border-b border-gray-200 p-4 bg-gray-50">
                     <div class="flex justify-between items-center">
                         <div>
-                            <h2 class="text-lg font-semibold">Pesanan #<?php echo $row['pesanan_id']; ?></h2>
+                            <h2 class="text-lg font-semibold">
+                                Pesanan #<?php echo $row['pesanan_id']; ?>
+                                <div class="text-sm text-gray-600">
+                                    Pemesan: <?php echo htmlspecialchars($row['nama_lengkap']); ?>
+                                    <br>
+                                    Telp: <?php echo htmlspecialchars($row['no_telp']); ?>
+                                </div>
+                            </h2>
                             <p class="text-gray-600"><?php echo date('d F Y H:i', strtotime($row['created_at'])); ?></p>
                         </div>
                         <div class="text-right">
