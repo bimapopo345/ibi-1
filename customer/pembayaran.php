@@ -2,6 +2,12 @@
 session_start();
 include '../includes/db.php';
 
+// Redirect jika keranjang kosong
+if (!isset($_SESSION['keranjang']) || empty($_SESSION['keranjang'])) {
+    header('Location: keranjang.php');
+    exit();
+}
+
 // Inisialisasi total_harga
 $total_harga = 0;
 
@@ -18,8 +24,20 @@ if (isset($_SESSION['keranjang'])) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $nama = $_POST['nama'];
-    $no_telp = $_POST['no_telp'];
+    $nama = htmlspecialchars(trim($_POST['nama_pemesan'] ?? ''));
+    $no_telp = htmlspecialchars(trim($_POST['nomor_whatsapp'] ?? ''));
+
+    // Validasi input
+    if (empty($nama) || empty($no_telp)) {
+        echo "<script>alert('Nama dan nomor telepon harus diisi!'); window.history.back();</script>";
+        exit();
+    }
+
+    // Validasi format nomor telepon (minimal 10 digit, maksimal 15 digit)
+    if (!preg_match('/^[0-9]{10,15}$/', str_replace(['-', ' ', '+'], '', $no_telp))) {
+        echo "<script>alert('Format nomor telepon tidak valid!'); window.history.back();</script>";
+        exit();
+    }
 
     // Buat user baru untuk pesanan ini
     $query = "INSERT INTO users (username, password, nama_lengkap, no_telp, role) 
@@ -103,21 +121,26 @@ include '../includes/header.php';
                 <div>
                     <label for="nama" class="block text-sm font-medium text-gray-700">Nama Pemesan</label>
                     <input type="text" 
-                           id="nama" 
-                           name="nama" 
+                           id="nama_pemesan" 
+                           name="nama_pemesan" 
                            required 
                            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500">
                 </div>
                 <div>
                     <label for="no_telp" class="block text-sm font-medium text-gray-700">Nomor Telepon</label>
                     <input type="tel" 
-                           id="no_telp" 
-                           name="no_telp" 
+                           id="nomor_whatsapp" 
+                           name="nomor_whatsapp" 
+                           pattern="[0-9]{10,15}"
+                           title="Masukkan nomor telepon yang valid (10-15 digit)"
+                           placeholder="Contoh: 081234567890"
                            required 
-                           class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500">
+                           class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-500">
+                    <p class="mt-1 text-sm text-gray-500">Format: 10-15 digit angka tanpa spasi atau tanda strip</p>
                 </div>
                 <div class="flex space-x-4">
                     <button type="submit" 
+                            id="submit-btn"
                             class="flex-1 bg-orange-600 hover:bg-orange-700 text-white font-bold py-3 px-6 rounded-lg transition-colors">
                         Konfirmasi Pembayaran
                     </button>
@@ -126,6 +149,29 @@ include '../includes/header.php';
                         Kembali
                     </a>
                 </div>
+                
+                <script>
+                    document.getElementById('submit-btn').addEventListener('click', function(e) {
+                        const nama = document.getElementById('nama_pemesan').value.trim();
+                        const telp = document.getElementById('nomor_whatsapp').value.trim();
+                        
+                        if (!nama || !telp) {
+                            e.preventDefault();
+                            alert('Silakan isi semua field yang diperlukan');
+                            return;
+                        }
+                        
+                        if (!/^[0-9]{10,15}$/.test(telp.replace(/[\s-+]/g, ''))) {
+                            e.preventDefault();
+                            alert('Nomor telepon harus berisi 10-15 digit angka');
+                            return;
+                        }
+                        
+                        this.classList.add('opacity-50', 'cursor-not-allowed');
+                        this.innerHTML = 'Memproses...';
+                        this.form.submit();
+                    });
+                </script>
             </div>
         </form>
     </div>
