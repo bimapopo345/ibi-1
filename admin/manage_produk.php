@@ -8,13 +8,13 @@ if (!isset($_SESSION['admin_id'])) {
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if (isset($_POST['add'])) {
-        $nama = $_POST['nama'];
+        $nama_produk = $_POST['nama_produk'];
         $harga = $_POST['harga'];
         $deskripsi = $_POST['deskripsi'];
         $gambar = $_FILES['gambar']['name'];
         move_uploaded_file($_FILES['gambar']['tmp_name'], "../images/$gambar");
 
-        $query = "INSERT INTO produk (nama, harga, deskripsi, gambar) VALUES ('$nama', '$harga', '$deskripsi', '$gambar')";
+        $query = "INSERT INTO produk (nama_produk, harga, deskripsi, gambar) VALUES ('$nama_produk', '$harga', '$deskripsi', '$gambar')";
         mysqli_query($conn, $query);
     } elseif (isset($_POST['delete'])) {
         $id = $_POST['id'];
@@ -84,7 +84,7 @@ $produk = mysqli_query($conn, "SELECT * FROM produk");
 
 <h1>Manage Produk</h1>
 <form method="POST" enctype="multipart/form-data">
-    <input type="text" name="nama" placeholder="Nama Produk" required>
+    <input type="text" name="nama_produk" placeholder="Nama Produk" required>
     <input type="number" name="harga" placeholder="Harga" required>
     <textarea name="deskripsi" placeholder="Deskripsi"></textarea>
     <input type="file" name="gambar" required>
@@ -100,7 +100,7 @@ $produk = mysqli_query($conn, "SELECT * FROM produk");
     </tr>
     <?php while ($row = mysqli_fetch_assoc($produk)) { ?>
     <tr>
-        <td><?php echo $row['nama']; ?></td>
+        <td><?php echo htmlspecialchars($row['nama_produk']); ?></td>
         <td><?php echo $row['harga']; ?></td>
         <td><?php echo $row['deskripsi']; ?></td>
         <td>

@@ -6,11 +6,14 @@ if (!isset($_SESSION['admin_id'])) {
     header('Location: index.php');
 }
 
-$pemesanan = mysqli_query($conn, "SELECT * FROM pemesanan WHERE status = 'dibayar'");
+$pemesanan = mysqli_query($conn, "SELECT p.*, u.nama_lengkap, u.no_telp 
+                                 FROM pesanan p 
+                                 JOIN users u ON p.user_id = u.id 
+                                 WHERE p.status = 'dibayar'");
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $id = $_POST['id'];
-    $query = "UPDATE pemesanan SET status = 'siap' WHERE id = $id";
+    $query = "UPDATE pesanan SET status = 'selesai' WHERE id = $id";
     mysqli_query($conn, $query);
 
     // Kirim notifikasi WhatsApp
@@ -118,8 +121,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     </tr>
     <?php while ($row = mysqli_fetch_assoc($pemesanan)) { ?>
     <tr>
-        <td><?php echo $row['nama_pemesan']; ?></td>
-        <td><?php echo $row['nomor_whatsapp']; ?></td>
+        <td><?php echo htmlspecialchars($row['nama_lengkap']); ?></td>
+        <td><?php echo htmlspecialchars($row['no_telp']); ?></td>
         <td>
             <form method="POST">
                 <input type="hidden" name="id" value="<?php echo $row['id']; ?>">
