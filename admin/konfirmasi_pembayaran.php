@@ -12,8 +12,8 @@ if (!isset($_SESSION['admin_id'])) {
 $pesanan = mysqli_query($conn, "SELECT p.*, pb.*, u.nama_lengkap, u.no_telp, u.email 
                                FROM pesanan p 
                                JOIN users u ON p.user_id = u.id
-                               JOIN pembayaran pb ON p.id = pb.pesanan_id
-                               WHERE p.status = 'menunggu_pembayaran' OR p.status = 'diproses'
+                               LEFT JOIN pembayaran pb ON p.id = pb.pesanan_id
+                               WHERE p.status IN ('pending', 'menunggu_pembayaran', 'diproses')
                                ORDER BY p.created_at DESC");
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
@@ -21,7 +21,22 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $id = filter_input(INPUT_POST, 'id', FILTER_SANITIZE_NUMBER_INT);
         $action = filter_input(INPUT_POST, 'action', FILTER_SANITIZE_STRING);
         
-        if ($action === 'konfirmasi') {
+        if ($action === 'delete') {
+            // Hapus data pembayaran
+            $stmt = $conn->prepare("DELETE FROM pembayaran WHERE pesanan_id = ?");
+            $stmt->bind_param("i", $id);
+            $stmt->execute();
+            
+            // Hapus detail pesanan
+            $stmt = $conn->prepare("DELETE FROM detail_pesanan WHERE pesanan_id = ?");
+            $stmt->bind_param("i", $id);
+            $stmt->execute();
+            
+            // Hapus pesanan
+            $stmt = $conn->prepare("DELETE FROM pesanan WHERE id = ?");
+            $stmt->bind_param("i", $id);
+            $stmt->execute();
+        } elseif ($action === 'konfirmasi') {
             $stmt = $conn->prepare("UPDATE pesanan SET status = 'diproses' WHERE id = ?");
             $stmt->bind_param("i", $id);
             $stmt->execute();
@@ -160,14 +175,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <?php 
                                     $status_class = [
+                                        'pending' => 'bg-yellow-100 text-yellow-800',
                                         'menunggu_pembayaran' => 'bg-yellow-100 text-yellow-800',
                                         'diproses' => 'bg-blue-100 text-blue-800',
-                                        'selesai' => 'bg-green-100 text-green-800'
+                                        'selesai' => 'bg-green-100 text-green-800',
+                                        'dibatalkan' => 'bg-red-100 text-red-800'
                                     ];
                                     $status_text = [
+                                        'pending' => 'Menunggu Konfirmasi',
                                         'menunggu_pembayaran' => 'Menunggu Konfirmasi',
                                         'diproses' => 'Sedang Diproses',
-                                        'selesai' => 'Selesai'
+                                        'selesai' => 'Selesai',
+                                        'dibatalkan' => 'Dibatalkan'
                                     ];
                                     ?>
                                     <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full <?php echo $status_class[$row['status']]; ?>">
@@ -175,14 +194,30 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                     </span>
                                 </td>
                                 <td class="px-6 py-4">
-                                    <button type="button" 
-                                            onclick="showPaymentProof('<?php echo htmlspecialchars($row['bukti_pembayaran']); ?>')"
-                                            class="text-blue-600 hover:text-blue-900">
-                                        <i class="fas fa-image"></i> Lihat Bukti
-                                    </button>
+                                    <?php if (!empty($row['bukti_pembayaran'])): ?>
+                                        <button type="button" 
+                                                onclick="showPaymentProof('<?php echo htmlspecialchars($row['bukti_pembayaran']); ?>')"
+                                                class="text-blue-600 hover:text-blue-900">
+                                            <i class="fas fa-image"></i> Lihat Bukti
+                                        </button>
+                                    <?php else: ?>
+                                        <span class="text-gray-400">
+                                            <i class="fas fa-image"></i> Belum ada bukti
+                                        </span>
+                                    <?php endif; ?>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                                    <?php if ($row['status'] == 'menunggu_pembayaran'): ?>
+                                    <?php if ($row['status'] == 'pending' || $row['status'] == 'menunggu_pembayaran'): ?>
+                                        <form method="POST" class="inline mr-2">
+                                            <input type="hidden" name="id" value="<?php echo $row['id']; ?>">
+                                            <input type="hidden" name="action" value="delete">
+                                            <button type="submit" 
+                                                    class="text-white bg-red-600 hover:bg-red-700 px-4 py-2 rounded-md transition-colors"
+                                                    onclick="return confirm('Yakin ingin menghapus pesanan ini? Tindakan ini tidak dapat dibatalkan.')">
+                                                <i class="fas fa-trash mr-1"></i>
+                                                Hapus
+                                            </button>
+                                        </form>
                                         <form method="POST" class="inline">
                                             <input type="hidden" name="id" value="<?php echo $row['id']; ?>">
                                             <input type="hidden" name="action" value="konfirmasi">
