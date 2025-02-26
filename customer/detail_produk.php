@@ -54,6 +54,18 @@ if (!$row) {
                                required 
                                class="w-20 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500">
                     </div>
+
+                    <div>
+                        <label for="catatan" class="block text-sm font-medium text-gray-700">Catatan Khusus:</label>
+                        <textarea name="catatan" 
+                                  id="catatan" 
+                                  rows="3" 
+                                  placeholder="Contoh: Level pedas, tidak pakai sayur, dll."
+                                  class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 resize-none"></textarea>
+                        <p class="mt-1 text-sm text-gray-500">
+                            Tambahkan catatan khusus untuk pesanan Anda (opsional)
+                        </p>
+                    </div>
                     
                     <div class="flex space-x-4">
                         <button type="submit" 

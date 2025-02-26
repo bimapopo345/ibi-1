@@ -2,20 +2,52 @@
 session_start();
 include '../includes/db.php';
 
+require_once '../includes/mail_helper.php';
+
 if (!isset($_SESSION['admin_id'])) {
     header('Location: index.php');
+    exit;
 }
 
-$pesanan = mysqli_query($conn, "SELECT p.*, u.nama_lengkap, u.no_telp 
+$pesanan = mysqli_query($conn, "SELECT p.*, pb.*, u.nama_lengkap, u.no_telp, u.email 
                                FROM pesanan p 
-                               JOIN users u ON p.user_id = u.id 
-                               WHERE p.status = 'pending'");
+                               JOIN users u ON p.user_id = u.id
+                               JOIN pembayaran pb ON p.id = pb.pesanan_id
+                               WHERE p.status = 'menunggu_pembayaran' OR p.status = 'diproses'
+                               ORDER BY p.created_at DESC");
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $id = $_POST['id'];
-    $query = "UPDATE pesanan SET status = 'dibayar' WHERE id = $id";
-    mysqli_query($conn, $query);
-    header('Location: konfirmasi_pembayaran.php');
+    if (isset($_POST['action']) && isset($_POST['id'])) {
+        $id = filter_input(INPUT_POST, 'id', FILTER_SANITIZE_NUMBER_INT);
+        $action = filter_input(INPUT_POST, 'action', FILTER_SANITIZE_STRING);
+        
+        if ($action === 'konfirmasi') {
+            $stmt = $conn->prepare("UPDATE pesanan SET status = 'diproses' WHERE id = ?");
+            $stmt->bind_param("i", $id);
+            $stmt->execute();
+            
+            $stmt = $conn->prepare("UPDATE pembayaran SET status = 'verified', verified_at = CURRENT_TIMESTAMP WHERE pesanan_id = ?");
+            $stmt->bind_param("i", $id);
+            $stmt->execute();
+        } elseif ($action === 'selesai') {
+            $stmt = $conn->prepare("UPDATE pesanan SET status = 'selesai' WHERE id = ?");
+            $stmt->bind_param("i", $id);
+            if ($stmt->execute()) {
+                // Ambil data customer untuk email
+                $stmt = $conn->prepare("SELECT u.nama_lengkap, u.email FROM pesanan p JOIN users u ON p.user_id = u.id WHERE p.id = ?");
+                $stmt->bind_param("i", $id);
+                $stmt->execute();
+                $result = $stmt->get_result();
+                $customer = $result->fetch_assoc();
+                
+                // Kirim email notifikasi
+                $emailTemplate = getEmailTemplatePesananSelesai($customer['nama_lengkap'], $id);
+                kirimEmail($customer['email'], "Pesanan Anda Telah Selesai", $emailTemplate);
+            }
+        }
+        header('Location: konfirmasi_pembayaran.php');
+        exit;
+    }
 }
 ?>
 
@@ -126,20 +158,53 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                     </div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
-                                        Menunggu Konfirmasi
+                                    <?php 
+                                    $status_class = [
+                                        'menunggu_pembayaran' => 'bg-yellow-100 text-yellow-800',
+                                        'diproses' => 'bg-blue-100 text-blue-800',
+                                        'selesai' => 'bg-green-100 text-green-800'
+                                    ];
+                                    $status_text = [
+                                        'menunggu_pembayaran' => 'Menunggu Konfirmasi',
+                                        'diproses' => 'Sedang Diproses',
+                                        'selesai' => 'Selesai'
+                                    ];
+                                    ?>
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full <?php echo $status_class[$row['status']]; ?>">
+                                        <?php echo $status_text[$row['status']]; ?>
                                     </span>
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                    <form method="POST" class="inline">
-                                        <input type="hidden" name="id" value="<?php echo $row['id']; ?>">
-                                        <button type="submit" 
-                                                class="text-white bg-orange-600 hover:bg-orange-700 px-4 py-2 rounded-md transition-colors"
-                                                onclick="return confirm('Konfirmasi pembayaran ini?')">
-                                            <i class="fas fa-check mr-1"></i>
-                                            Konfirmasi
-                                        </button>
-                                    </form>
+                                <td class="px-6 py-4">
+                                    <button type="button" 
+                                            onclick="showPaymentProof('<?php echo htmlspecialchars($row['bukti_pembayaran']); ?>')"
+                                            class="text-blue-600 hover:text-blue-900">
+                                        <i class="fas fa-image"></i> Lihat Bukti
+                                    </button>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                                    <?php if ($row['status'] == 'menunggu_pembayaran'): ?>
+                                        <form method="POST" class="inline">
+                                            <input type="hidden" name="id" value="<?php echo $row['id']; ?>">
+                                            <input type="hidden" name="action" value="konfirmasi">
+                                            <button type="submit" 
+                                                    class="text-white bg-green-600 hover:bg-green-700 px-4 py-2 rounded-md transition-colors"
+                                                    onclick="return confirm('Konfirmasi pembayaran ini?')">
+                                                <i class="fas fa-check mr-1"></i>
+                                                Konfirmasi
+                                            </button>
+                                        </form>
+                                    <?php elseif ($row['status'] == 'diproses'): ?>
+                                        <form method="POST" class="inline">
+                                            <input type="hidden" name="id" value="<?php echo $row['id']; ?>">
+                                            <input type="hidden" name="action" value="selesai">
+                                            <button type="submit" 
+                                                    class="text-white bg-orange-600 hover:bg-orange-700 px-4 py-2 rounded-md transition-colors"
+                                                    onclick="return confirm('Tandai pesanan ini sebagai selesai?')">
+                                                <i class="fas fa-check-double mr-1"></i>
+                                                Selesai
+                                            </button>
+                                        </form>
+                                    <?php endif; ?>
                                 </td>
                             </tr>
                             <?php } ?>
@@ -167,11 +232,42 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         </div>
     </div>
 
+    <!-- Modal untuk menampilkan bukti pembayaran -->
+    <div id="paymentProofModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-white p-4 rounded-lg max-w-2xl w-full mx-4">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold">Bukti Pembayaran</h3>
+                <button onclick="closePaymentProof()" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            <div class="relative">
+                <img id="paymentProofImage" src="" alt="Bukti Pembayaran" class="w-full h-auto max-h-[70vh] object-contain">
+            </div>
+        </div>
+    </div>
+
     <script>
         // Mobile menu toggle
         document.getElementById('mobile-menu-button').addEventListener('click', function() {
             document.getElementById('mobile-menu').classList.toggle('hidden');
         });
+
+        // Fungsi untuk menampilkan bukti pembayaran
+        function showPaymentProof(filename) {
+            const modal = document.getElementById('paymentProofModal');
+            const image = document.getElementById('paymentProofImage');
+            image.src = '../uploads/bukti_pembayaran/' + filename;
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        // Fungsi untuk menutup modal bukti pembayaran
+        function closePaymentProof() {
+            const modal = document.getElementById('paymentProofModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
     </script>
 </body>
 </html>

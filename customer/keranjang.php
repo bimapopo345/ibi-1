@@ -15,16 +15,27 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['produk_id'])) {
     $produk_id = filter_input(INPUT_POST, 'produk_id', FILTER_SANITIZE_NUMBER_INT);
     $jumlah = filter_input(INPUT_POST, 'jumlah', FILTER_SANITIZE_NUMBER_INT);
 
+    $catatan = filter_input(INPUT_POST, 'catatan', FILTER_SANITIZE_STRING);
+
     // Jika keranjang belum ada, inisialisasi
     if (!isset($_SESSION['keranjang'])) {
         $_SESSION['keranjang'] = [];
+        $_SESSION['catatan'] = [];
     }
 
     // Tambahkan produk ke keranjang
     if (isset($_SESSION['keranjang'][$produk_id])) {
-        $_SESSION['keranjang'][$produk_id] += $jumlah; // Update jumlah jika produk sudah ada
+        $_SESSION['keranjang'][$produk_id] += $jumlah;
+        if (!empty($catatan)) {
+            // Jika ada catatan baru, tambahkan ke catatan yang sudah ada
+            $existing_note = isset($_SESSION['catatan'][$produk_id]) ? $_SESSION['catatan'][$produk_id] . "\n" : "";
+            $_SESSION['catatan'][$produk_id] = $existing_note . $catatan;
+        }
     } else {
-        $_SESSION['keranjang'][$produk_id] = $jumlah; // Tambah produk baru
+        $_SESSION['keranjang'][$produk_id] = $jumlah;
+        if (!empty($catatan)) {
+            $_SESSION['catatan'][$produk_id] = $catatan;
+        }
     }
 
     header('Location: keranjang.php'); // Redirect ke halaman keranjang
@@ -69,6 +80,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['produk_id'])) {
                                         <img class="h-16 w-16 object-cover rounded" src="../images/<?php echo htmlspecialchars($row['gambar']); ?>" alt="<?php echo htmlspecialchars($row['nama_produk']); ?>">
                                         <div class="ml-4">
                                             <div class="text-sm font-medium text-gray-900"><?php echo htmlspecialchars($row['nama_produk']); ?></div>
+                                            <?php if (isset($_SESSION['catatan'][$id]) && !empty($_SESSION['catatan'][$id])): ?>
+                                                <div class="text-sm text-gray-500 mt-1">
+                                                    <span class="font-medium">Catatan:</span> <?php echo nl2br(htmlspecialchars($_SESSION['catatan'][$id])); ?>
+                                                </div>
+                                            <?php endif; ?>
                                         </div>
                                     </div>
                                 </td>
