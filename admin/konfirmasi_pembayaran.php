@@ -13,7 +13,9 @@ if (!isset($_SESSION['admin_id'])) {
 $notifikasi_query = mysqli_query($conn, "SELECT COUNT(*) as count FROM notifikasi WHERE dibaca = 0");
 $notifikasi_count = mysqli_fetch_assoc($notifikasi_query)['count'];
 
-$pesanan = mysqli_query($conn, "SELECT p.*, pb.*, u.nama_lengkap, u.no_telp, u.email 
+$pesanan = mysqli_query($conn, "SELECT p.id, p.user_id, p.total_harga, p.status AS pesanan_status, p.created_at, 
+                                      pb.status AS pembayaran_status, pb.bukti_pembayaran, pb.verified_at,
+                                      u.nama_lengkap, u.no_telp, u.email 
                                FROM pesanan p 
                                JOIN users u ON p.user_id = u.id
                                LEFT JOIN pembayaran pb ON p.id = pb.pesanan_id
@@ -154,8 +156,8 @@ include 'header_admin.php';
                                     'dibatalkan' => 'Dibatalkan'
                                 ];
                                 ?>
-                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full <?php echo $status_class[$row['status']]; ?>">
-                                    <?php echo $status_text[$row['status']]; ?>
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full <?php echo $status_class[$row['pesanan_status']] ?? 'bg-yellow-100 text-yellow-800'; ?>">
+                                    <?php echo $status_text[$row['pesanan_status']] ?? 'Menunggu Konfirmasi'; ?>
                                 </span>
                             </td>
                             <td class="px-6 py-4">
@@ -172,7 +174,7 @@ include 'header_admin.php';
                                 <?php endif; ?>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                                <?php if ($row['status'] == 'pending' || $row['status'] == 'menunggu_pembayaran'): ?>
+                                <?php if ($row['pesanan_status'] == 'pending' || $row['pesanan_status'] == 'menunggu_pembayaran'): ?>
                                     <form method="POST" class="inline mr-2">
                                         <input type="hidden" name="id" value="<?php echo $row['id']; ?>">
                                         <input type="hidden" name="action" value="delete">
@@ -193,7 +195,7 @@ include 'header_admin.php';
                                             Konfirmasi
                                         </button>
                                     </form>
-                                <?php elseif ($row['status'] == 'diproses'): ?>
+                                <?php elseif ($row['pesanan_status'] == 'diproses'): ?>
                                     <form method="POST" class="inline">
                                         <input type="hidden" name="id" value="<?php echo $row['id']; ?>">
                                         <input type="hidden" name="action" value="selesai">
