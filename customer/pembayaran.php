@@ -85,7 +85,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
                         // Simpan data pembayaran
                         $stmt = $conn->prepare("INSERT INTO pembayaran (pesanan_id, jumlah, metode_pembayaran, bukti_pembayaran, bank_tujuan, nomor_rekening, nama_pengirim, status) VALUES (?, ?, ?, ?, ?, ?, ?, 'pending')");
-                        $stmt->bind_param("idssssss", $pesanan_id, $total_harga, $metode_pembayaran, $filename, $bank_tujuan, $nomor_rekening, $nama_pengirim);
+                        $stmt->bind_param("idsssss", $pesanan_id, $total_harga, $metode_pembayaran, $filename, $bank_tujuan, $nomor_rekening, $nama_pengirim);
                         
                         if ($stmt->execute()) {
                             // Hapus keranjang
