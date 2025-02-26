@@ -1,3 +1,17 @@
+<?php
+if (!isset($conn)) {
+    include '../includes/db.php';
+}
+
+// Set default value untuk notifikasi_count
+$notifikasi_count = $notifikasi_count ?? 0;
+
+// Hitung notifikasi yang belum dibaca jika belum dihitung
+if ($notifikasi_count === 0) {
+    $notifikasi_query = mysqli_query($conn, "SELECT COUNT(*) as count FROM notifikasi WHERE dibaca = 0");
+    $notifikasi_count = mysqli_fetch_assoc($notifikasi_query)['count'];
+}
+?>
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -82,5 +96,3 @@
             document.getElementById('mobile-menu').classList.toggle('hidden');
         });
     </script>
-</body>
-</html>

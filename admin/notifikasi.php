@@ -10,15 +10,21 @@ if (!isset($_SESSION['admin_id'])) {
 // Tandai notifikasi sebagai dibaca jika ada action=read
 if (isset($_GET['action']) && $_GET['action'] === 'read') {
     mysqli_query($conn, "UPDATE notifikasi SET dibaca = TRUE WHERE dibaca = FALSE");
+    header('Location: notifikasi.php');
+    exit;
 }
 
-// Ambil semua notifikasi
+// Ambil notifikasi
 $notifikasi = mysqli_query($conn, "SELECT n.*, p.id as pesanan_id, u.nama_lengkap 
                                   FROM notifikasi n 
                                   JOIN pesanan p ON n.pesanan_id = p.id 
                                   JOIN users u ON p.user_id = u.id 
                                   ORDER BY n.created_at DESC 
                                   LIMIT 50");
+
+// Ambil jumlah notifikasi yang belum dibaca
+$notifikasi_query = mysqli_query($conn, "SELECT COUNT(*) as count FROM notifikasi WHERE dibaca = 0");
+$notifikasi_count = mysqli_fetch_assoc($notifikasi_query)['count'];
 
 include 'header_admin.php';
 ?>
@@ -36,11 +42,13 @@ include 'header_admin.php';
                     <p class="text-gray-600">Pemberitahuan aktivitas pesanan</p>
                 </div>
             </div>
-            <a href="?action=read" 
-               class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-orange-600 hover:bg-orange-700">
-                <i class="fas fa-check-double mr-2"></i>
-                Tandai Semua Dibaca
-            </a>
+            <?php if ($notifikasi_count > 0): ?>
+                <a href="?action=read" 
+                   class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 transition-colors">
+                    <i class="fas fa-check-double mr-2"></i>
+                    Tandai Semua Dibaca
+                </a>
+            <?php endif; ?>
         </div>
     </div>
 
