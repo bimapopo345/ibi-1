@@ -14,6 +14,10 @@ if (isset($_GET['action']) && $_GET['action'] === 'read') {
     exit;
 }
 
+// Ambil jumlah notifikasi yang belum dibaca
+$notifikasi_query = mysqli_query($conn, "SELECT COUNT(*) as count FROM notifikasi WHERE dibaca = 0");
+$notifikasi_count = mysqli_fetch_assoc($notifikasi_query)['count'];
+
 // Ambil notifikasi
 $notifikasi = mysqli_query($conn, "SELECT n.*, p.id as pesanan_id, u.nama_lengkap 
                                   FROM notifikasi n 
@@ -21,10 +25,6 @@ $notifikasi = mysqli_query($conn, "SELECT n.*, p.id as pesanan_id, u.nama_lengka
                                   JOIN users u ON p.user_id = u.id 
                                   ORDER BY n.created_at DESC 
                                   LIMIT 50");
-
-// Ambil jumlah notifikasi yang belum dibaca
-$notifikasi_query = mysqli_query($conn, "SELECT COUNT(*) as count FROM notifikasi WHERE dibaca = 0");
-$notifikasi_count = mysqli_fetch_assoc($notifikasi_query)['count'];
 
 include 'header_admin.php';
 ?>
@@ -83,7 +83,7 @@ include 'header_admin.php';
                                         <p class="text-sm text-gray-500">
                                             <?php echo htmlspecialchars($row['pesan']); ?>
                                         </p>
-                                        <div class="mt-1 text-xs text-gray-400 flex items-center">
+                                        <div class="mt-1 text-xs text-gray-400 flex items-center flex-wrap">
                                             <span><?php echo date('d/m/Y H:i', strtotime($row['created_at'])); ?></span>
                                             <span class="mx-2">•</span>
                                             <span>Pesanan #<?php echo str_pad($row['pesanan_id'], 5, '0', STR_PAD_LEFT); ?></span>
