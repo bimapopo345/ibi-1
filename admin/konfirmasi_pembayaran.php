@@ -9,6 +9,10 @@ if (!isset($_SESSION['admin_id'])) {
     exit;
 }
 
+// Ambil jumlah notifikasi yang belum dibaca
+$notifikasi_query = mysqli_query($conn, "SELECT COUNT(*) as count FROM notifikasi WHERE dibaca = 0");
+$notifikasi_count = mysqli_fetch_assoc($notifikasi_query)['count'];
+
 $pesanan = mysqli_query($conn, "SELECT p.*, pb.*, u.nama_lengkap, u.no_telp, u.email 
                                FROM pesanan p 
                                JOIN users u ON p.user_id = u.id
@@ -37,7 +41,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $stmt->bind_param("i", $id);
             $stmt->execute();
 
-            // Redirect dan keluar
             header('Location: konfirmasi_pembayaran.php');
             exit;
         } elseif ($action === 'konfirmasi') {
@@ -56,7 +59,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $stmt->bind_param("i", $id);
             $stmt->execute();
 
-            // Redirect dan keluar
             header('Location: konfirmasi_pembayaran.php');
             exit;
         } elseif ($action === 'selesai') {
@@ -82,16 +84,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $stmt->execute();
             }
 
-            // Redirect dan keluar
             header('Location: konfirmasi_pembayaran.php');
             exit;
         }
     }
 }
-
-// Ambil jumlah notifikasi
-$notifikasi_query = mysqli_query($conn, "SELECT COUNT(*) as count FROM notifikasi WHERE dibaca = 0");
-$notifikasi_count = mysqli_fetch_assoc($notifikasi_query)['count'];
 
 include 'header_admin.php';
 ?>
@@ -225,6 +222,14 @@ include 'header_admin.php';
             </div>
         </div>
     </div>
+
+    <!-- Link Kembali -->
+    <div class="mt-6 text-center">
+        <a href="dashboard.php" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-gray-700 bg-gray-100 hover:bg-gray-200">
+            <i class="fas fa-arrow-left mr-2"></i>
+            Kembali ke Dashboard
+        </a>
+    </div>
 </div>
 
 <!-- Modal untuk menampilkan bukti pembayaran -->
@@ -243,9 +248,11 @@ include 'header_admin.php';
 </div>
 
 <script>
-// Mobile menu toggle
-document.getElementById('mobile-menu-button').addEventListener('click', function() {
-    document.getElementById('mobile-menu').classList.toggle('hidden');
+document.addEventListener('DOMContentLoaded', function() {
+    // Mobile menu toggle
+    document.getElementById('mobile-menu-button').addEventListener('click', function() {
+        document.getElementById('mobile-menu').classList.toggle('hidden');
+    });
 });
 
 // Fungsi untuk menampilkan bukti pembayaran
